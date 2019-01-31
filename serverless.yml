@@ -1,0 +1,46 @@
+service:
+  name: serverless-aws-nodejs-2019
+  publish: false
+
+package:
+  individually: true
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  webpack:
+    webpackConfig: ./webpack.config.js
+    packager: yarn
+    includeModules:
+      forceExclude:
+        - aws-sdk
+  environment: ${file(env.yml):${self:custom.stage}}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: ${self:custom.stage}
+  region: ${opt:region, 'us-west-2'}
+  environment: ${self:custom.environment}
+
+functions:
+  getFunction:
+    description: Response a JSON with the GET params received
+    handler: handlers/getFunction.handler
+    events:
+      - http:
+          path: get-function
+          method: get
+          cors: true
+
+  postFunction:
+    description: Response a JSON with the POST params received
+    handler: handlers/postFunction.handler
+    events:
+      - http:
+          path: post-function
+          method: post
+          cors: true
